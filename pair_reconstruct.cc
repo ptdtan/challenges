@@ -14,7 +14,7 @@ using namespace std;
 
 typedef unsigned long UL;
 typedef std::unordered_map<UL, std::queue<UL> > IOq;
-typedef std::unordered_map<UL, std::string> KmerHash;
+typedef std::unordered_map<UL, std::pair<string, string> > KmerHash;
 
 void insert_after(list<UL> &tour, list<UL>::iterator &it, UL e)
 {
@@ -46,7 +46,7 @@ void eulerian(list<UL> &tour, list<UL>::iterator &it, IOq &out_q)
     }
 }
 
-UL strHash(std::string &s)
+UL strHash(std::string s)
 {
     const char *str = s.c_str();
     UL hash = 0 ;
@@ -62,21 +62,26 @@ int main(int argc, char* argv[])
 {
     ifstream fin(argv[1]);
     UL src, dst;
-    string s, s_src, s_dst, res;
+    string s, res;
+    pair<string, string> s_src, s_dst;
     IOq out_q;
     list<UL> tour;
     set<UL> non_first;
-    int k;
+    int k, d;
     KmerHash kmerHash;
 
     //read edges from input
-    getline(fin, s);
+    getline(fin, s, ' '); //read k
     k = atoi(s.c_str()) - 1;
+
+    getline(fin, s); //read d
+    d = atoi(s.c_str());
+
     while(getline(fin, s)){
-        s_src = s.substr(0, k);
-        s_dst = s.substr(1, k);
-        src = strHash(s_src);
-        dst = strHash(s_dst);
+        s_src = make_pair(s.substr(0, k), s.substr(k+2, k));
+        s_dst = make_pair(s.substr(1, k), s.substr(k+3, k));
+        src = strHash(s_src.first + s_src.second);
+        dst = strHash(s_dst.first + s_dst.second);
         kmerHash[src] = s_src;
         kmerHash[dst] = s_dst;
         out_q[src].push(dst);
@@ -103,13 +108,18 @@ int main(int argc, char* argv[])
 
     //output
     it = tour.begin();
-    res = kmerHash[*it];
+    res = kmerHash[*it].first;
     it++;
     while(it != tour.end()){
-        std::cout << *it <<std::endl;
-        res+=kmerHash[*it][k-1];
+        res+=kmerHash[*it].first[k - 1];
         it++;
     }
-    //std::cout << res;
+    it--;
+    string tail = kmerHash[*it].second;
+    for(int i = 0; i < d + 1; i++){
+        it--;
+        tail = kmerHash[*it].second[0] + tail;
+    }
+    std::cout << res << tail << std::endl;
     return 0;
 }

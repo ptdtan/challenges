@@ -106,10 +106,10 @@ int main(int argc, char* argv[])
     res = kmerHash[*it];
     it++;
     while(it != tour.end()){
-        std::cout << *it <<std::endl;
         res+=kmerHash[*it][k-1];
         it++;
     }
-    //std::cout << res;
+    res.resize(res.length() - k);
+    std::cout << res;
     return 0;
 }
