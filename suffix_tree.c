@@ -38,8 +38,10 @@ T * init_tree(struct T* p, int s, int *e, struct T* f)
  * */
 void new_internal(T* p, int a_e, int *ls, int n_l, int *end, int *str, T* root)
 {
+    int *e = malloc(4);
+    *e = *ls + 1;
     //new internal node
-    T *in = init_tree(p, ((T*)p->edge[a_e])->s, ls, root);
+    T *in = init_tree(p, ((T*)p->edge[a_e])->s, e, root);
 
     //new leaf
     struct T *n_leaf = (struct T*)init_tree(in, n_l, end, (T*)0);
@@ -133,7 +135,7 @@ int main(int argc, char* argv[])
         len++;
         r++;
     }
-    len--;
+    str[len - 1] = 5;
     T * tree = build_tree(str, len);
     return 0;
 }
