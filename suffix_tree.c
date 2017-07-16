@@ -1,7 +1,15 @@
 #include "stdio.h"
 #include "stdlib.h"
+#include <unistd.h>
+#include <limits.h>
+#include <assert.h>
+#include <math.h>
 #include "string.h"
-#define N_CHILDS 4
+#include <ctype.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
+#define N_CHILDS 5
 
 #define CUR(a_n, a_l, a_e) ((T*)a_n->edge[a_e])->s + a_l -1 
 #define ISNEXT(a_n, a_l, a_e) (a_e != -1 && \
@@ -12,6 +20,26 @@
         a_l = 0; \
         a_e = -1;\
 
+unsigned char seq_nt6_table[256] = { 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 4,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 0, 5, 1,  5, 5, 5, 2,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  3, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 0, 5, 1,  5, 5, 5, 2,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  3, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5, 
+	5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5,  5, 5, 5, 5  
+};
+char *nt_rev = "ACGT$";
+ 
 typedef struct 
 {
     int s;
@@ -89,7 +117,7 @@ T * build_tree(int *str, int len)
                 NEXT(a_n, a_l, a_e);
                 break;
             }
-            if(a_l == 0){
+            if(a_l == 0){  //being at head of one node
                 if(a_n->edge[str[i + 1]] != NULL){
                     a_e = str[i + 1];
                     a_l++;
@@ -124,18 +152,39 @@ T * build_tree(int *str, int len)
     }
     return root;
 }
+
+/*
+ * print edges of suffix tree for debugging
+ *
+ * */
+void print_tree(T *root, int* str)
+{
+	for(int i = 0; i < N_CHILDS; ++i){
+		if(root->edge[i] != NULL){
+			T * ch = root->edge[i];
+			for(int c = ch->s; c < *ch->e ; c++)
+				printf("%c", nt_rev[str[c]]);
+			printf("\n");
+			print_tree(ch, str);
+		}
+	}
+}
+
 int main(int argc, char* argv[])
 {
-    FILE *fp = fopen(argv[1], "r");
+   FILE *fp = fopen(argv[1], "r");
     int len = 0;
-    int *str = (int *)calloc(256, sizeof(int));
+    int *str = (int *)calloc(100000, sizeof(int));
     int *r = str;
+    int *buff = malloc(4);
     while(!feof(fp)){
-        fscanf(fp, "%1d", r);
+        fscanf(fp, "%1c", buff);
+        *r = seq_nt6_table[*buff];
         len++;
         r++;
     }
-    str[len - 1] = 5;
+    str[len - 1] = 4;
     T * tree = build_tree(str, len);
+    print_tree(tree, str);
     return 0;
 }
