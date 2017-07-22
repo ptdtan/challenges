@@ -178,7 +178,7 @@ T * build_tree(int *str, int len)
                     //walk down
                     a_l = 0;
                     a_e = -1;
-					walk_down(l, i, str, &a_n, &a_l, &a_e);
+                    walk_down(l, i, str, &a_n, &a_l, &a_e);
                     j++;
                 }
             }
