@@ -94,12 +94,41 @@ void new_leaf(T *p, int *end, int s, int* str)
     p->edge[str[s]] = init_tree(p, s, end, (T*)0);
 }
 
+/* walk down
+ */
+void walk_down(int l, int i, int* str, T **a_n, int *a_l, int *a_e)
+{
+	T * d = NULL;
+	while(l < i + 1){
+		if((*a_n)->edge[str[l]] == NULL){
+			*a_l = 0;
+			*a_e = -1;
+			break;
+		}
+		d = (*a_n)->edge[str[l]];
+		int ll = *d->e - d->s;
+		if(ll > (i + 1) -l){
+			*a_l = (i + 1) - l;
+			*a_e = str[l];
+			break;
+		}else{
+			l = l + ll;
+			*a_n = d;
+			if(l == i + 1){
+				*a_l = 0;
+				*a_e = -1;
+			}
+		}
+	}
+}
+
 T * build_tree(int *str, int len)
 {
     int i = 0, j = 1, k; 
     int *end = malloc(4);
     *end = 1;
     T * root = init_tree(NULL, -1, (int *)NULL, NULL);
+    root->f = root;
     root->edge[str[i]] = (struct T*)init_tree((struct T*)root, i, end, NULL);
 
     T* a_n = root;
@@ -107,6 +136,7 @@ T * build_tree(int *str, int len)
     int a_l = 0;
     int a_e = -1;
     int cur = 0;
+    int l = 0;
 
     while(i < len - 1){
         //finish rule 1 till show stopper
@@ -115,7 +145,7 @@ T * build_tree(int *str, int len)
         while(j <= i + 1){
             if(ISNEXT(a_n, a_l, a_e)){
                 NEXT(a_n, a_l, a_e);
-                break;
+                //break;
             }
             if(a_l == 0){  //being at head of one node
                 if(a_n->edge[str[i + 1]] != NULL){
@@ -141,9 +171,14 @@ T * build_tree(int *str, int len)
                         last->f = a_n->edge[a_e];
                     }
                     last = (T*)a_n->edge[a_e];
-                    a_n = ((T*)a_n->edge[a_e])->f;
-                    a_e = str[j + 1];
-                    a_l--;
+                    //walk up at most one edge
+                    a_n = ((T*)a_n->edge[a_e])->f == root?a_n->f:((T*)a_n->edge[a_e])->f;
+
+                    l = a_n == root ? j + 1: last->s;
+                    //walk down
+                    a_l = 0;
+                    a_e = -1;
+					walk_down(l, i, str, &a_n, &a_l, &a_e);
                     j++;
                 }
             }
@@ -174,14 +209,16 @@ int main(int argc, char* argv[])
 {
    FILE *fp = fopen(argv[1], "r");
     int len = 0;
-    int *str = (int *)calloc(100000, sizeof(int));
+    int *str = (int *)calloc(500000000, sizeof(int));
     int *r = str;
     int *buff = malloc(4);
     while(!feof(fp)){
         fscanf(fp, "%1c", buff);
-        *r = seq_nt6_table[*buff];
-        len++;
-        r++;
+        if(buff[0] != '\n'){
+        	*r = seq_nt6_table[*buff];
+			len++;
+			r++;
+		}
     }
     str[len - 1] = 4;
     T * tree = build_tree(str, len);
